@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spooky Boba Submission</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- fa icons -->
+  <script src="https://kit.fontawesome.com/8bed0ad5bd.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-black">
+  <div class="fixed top-4 w-screen flex justify-between flex-col md:flex-row-reverse px-4 z-50">
+    <div class="flex items-center">
+      <div class="">
+        <a href="https://hack.club/boba-manor"
+          class="bg-black border-4 border-white text-white rounded-md px-4 py-2 font-semibold capitalize relative top-0 hover:top-[2px] transition-all">
+          Open the door
+        </a>
+      </div>
+
+      <a href="https://github.com/ThomasJPrice/boba-manor-submission"
+        class="bg-black border-4 ml-2 border-white text-white rounded-md px-2 py-1 relative top-0 hover:top-[2px] transition-all">
+        <i class="fa-brands fa-github text-xl"></i>
+      </a>
+    </div>
+
+    <div class="text-white font-semibold mt-2 md:mt-0">
+      <ul class="text-left text-white max-w-[200px] list-disc"></ul>
+      <li>Made for Hack Club Boba Manor</li>
+      <li>Best Playable on Desktop</li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- main game container -->
+  <div
+    class="w-[1080px] h-screen max-lg:overflow-x-scroll overflow-y-hidden mx-auto relative grid place-items-center bg-bottom bg-cover"
+    id="gameContainer">
+
+    <!-- inventory -->
+    <div class="absolute bottom-8 left-8 z-[100] flex" id="inventory">
+    </div>
+
+    <!-- jumpscares -->
+    <!-- skull -->
+    <div class="absolute left-[580px] top-[328px] cursor-pointer" id="jumpscares-skull">
+      <img src="./assets/skull.png" alt="shhhh... not telling you!" class="w-[40px] p-2 hover:scale-[1.1]">
+    </div>
+
+    <div class="absolute left-[722px] top-[239px] pointer-events-none invisible" id="jumpscares-ghoul">
+      <img src="./assets/ghoul.png" alt="shhhh... not telling you!" class="pointer-events-none">
+    </div>
+
+    <!-- first puzzle - cabinet -->
+    <!-- lock -->
+    <div onclick="handleLockClick()" class="absolute left-[870px] top-[560px] cursor-pointer" id="puzzle1-padlock">
+      <img class="w-[35px] p-2 hover:scale-[1.1]" src="./assets/padlock.png" alt="shhhh... it's a padlock!">
+    </div>
+
+    <!-- paper -->
+    <div class="absolute cursor-pointer top-[680px]" id="puzzle1-paper">
+      <img src="./assets/puzzle1.png" alt="shhhh... it's a puzzle" class="w-[40px] p-2 hover:scale-[1.1]">
+    </div>
+
+    <!-- paper modal -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-8 max-w-[600px] z-[100] invisible"
+      id="puzzle1-modal">
+      <button class="text-white absolute top-0 right-0 text-2xl bg-black px-2 py-1 border-4 rounded-md"
+        onclick="document.getElementById('puzzle1-modal').classList.add('invisible'); document.getElementById('puzzle1-paper').classList.remove('invisible')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <img src="./assets/puzzle1.png" alt="puzzle 1" class="w-full p-4">
+
+      <!-- inputs -->
+      <div class="flex justify-between mt-4">
+        <p class="bg-black border-4 rounded-md text-white font-semibold px-2 py-1">Reward: 🔑</p>
+
+        <div class="flex">
+          <input class="bg-black px-2 py-1 text-white border-4 rounded-l-md" type="text" name="puzzle1"
+            id="puzzle1-input" placeholder="Answer">
+          <button type="submit" class="bg-black text-white border-4 border-l-0 rounded-r-md py-1 px-2 font-semibold"
+            onclick="handlePuzzle1Submit()">Submit</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- second puzzle - console -->
+    <div id="puzzle2-trigger" class="absolute left-[170px] top-[370px] cursor-pointer"
+      onclick="document.getElementById('puzzle2-modal').classList.remove('invisible'); document.getElementById('puzzle2-trigger').classList.add('invisible')">
+      <img src="./assets/console.png" alt="shhhh... it's a games console!" class="p-2 hover:scale-[1.1] w-[60px]">
+    </div>
+
+    <!-- console modal -->
+    <div id="puzzle2-modal"
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-8 max-w-[800px] z-[100]">
+      <button class="text-white absolute top-0 right-0 text-2xl bg-black px-2 py-1 border-4 rounded-md"
+        onclick="document.getElementById('puzzle2-modal').classList.add('invisible'); document.getElementById('puzzle2-trigger').classList.remove('invisible')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <img src="./assets/console.png" alt="puzzle 2" class="w-full px-4" id="console-image">
+      <div id="canvas-wrapper" class="relative">
+        <canvas id="console-canvas" class="w-full px-4"></canvas>
+      </div>
+    </div>
+
+    <!-- <div id="flashlight" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div> -->
+    <div id="flashlight" class=""></div>
+
+  </div>
+
+
+</body>
+
+<script>
+
+  // flashlight effect
+  const flashlight = document.getElementById('flashlight');
+  const gameContainer = document.getElementById('gameContainer');
+
+  gameContainer.addEventListener('mousemove', (e) => {
+    const rect = gameContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left;  // Adjust relative to the container
+    const y = e.clientY - rect.top;   // Adjust relative to the container
+
+    flashlight.style.setProperty('--x', x + 'px');
+    flashlight.style.setProperty('--y', y + 'px');
+  });
+
+  // inventory
+
+  const inventory = document.getElementById('inventory')
+  function addToInventory(item) {
+    const node = document.createElement('div')
+    node.id = `inventoryItem-${item}`
+    node.innerText = item
+    node.className = 'text-5xl'
+
+    inventory.appendChild(node)
+  }
+
+  // triggers
+
+  function showNumber(where, num) {
+    const wrapper = document.createElement('div')
+
+    wrapper.id = `number-${num}`
+    wrapper.className = 'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] flex flex-col gap-6 items-center'
+
+    wrapper.innerHTML = `
+    <p class='px-2 py-1 font-semibold border-4 rounded-md bg-black text-white'>In the ${where}, there was a scrap of paper:  
+    
+    <div>
+        <img src='./assets/scrap${num}.png' class='w-[270px]' />
+      </div>
+
+      <button class='px-2 py-1 font-semibold border-4 rounded-md bg-black text-white' onclick="document.getElementById('number-${num}').remove()">Okay</button>
+    `
+
+    gameContainer.appendChild(wrapper)
+  }
+
+  // jumpscares
+  const skullTrigger = document.getElementById('jumpscares-skull');
+  const skullImage = skullTrigger.querySelector('img'); // Get the skull image
+
+  skullTrigger.addEventListener('click', () => {
+    // Create a clone of the skull image to apply the jumpscare effect
+    const jumpscareImage = skullImage.cloneNode();
+    jumpscareImage.classList.add('jumpscare');
+    document.body.appendChild(jumpscareImage);
+
+    // Wait for the next frame to ensure the image is in the DOM
+    requestAnimationFrame(() => {
+      jumpscareImage.style.opacity = '1'; // Make it visible
+      jumpscareImage.style.transform = 'translate(-50%, -50%) scale(1.5)'; // Scale and center
+
+      // After the animation ends, remove the element
+      setTimeout(() => {
+        document.body.removeChild(jumpscareImage);
+      }, 700); // Match the duration of the transition
+    });
+
+    skullTrigger.remove()
+  });
+
+
+  // puzzle 1
+  const puzzle1Paper = document.getElementById('puzzle1-paper')
+  const paperImage = puzzle1Paper.querySelector('img')
+  puzzle1Paper.addEventListener('click', () => {
+    puzzle1Paper.classList.add('invisible')
+    document.getElementById('puzzle1-modal').classList.remove('invisible')
+  })
+
+  const handlePuzzle1Submit = () => {
+    const answer = document.getElementById('puzzle1-input').value
+
+    if (answer !== '419') {
+      // wrong
+      return
+    }
+
+    document.getElementById('puzzle1-modal').classList.add('invisible')
+    addToInventory('🔑')
+  }
+
+  const handleLockClick = () => {
+    const keyItem = inventory.querySelector('#inventoryItem-🔑')
+
+    // key rustling sound
+
+    if (!keyItem) {
+      // seems like you need a key...
+      return
+    }
+
+    keyItem.remove()
+
+    const lock = document.getElementById('puzzle1-padlock')
+    lock.remove()
+    showNumber('cabinet', 1)
+    // key unlock sound
+
+
+    // move onto clue 2
+    document.getElementById('jumpscares-ghoul').classList.remove('invisible')
+    document.getElementById('puzzle2-trigger').classList.remove('invisible')
+  }
+
+
+  // puzzle 2
+
+  const consoleImage = document.getElementById('console-image')
+  const consoleCanvas = document.getElementById('console-canvas')
+  const context = consoleCanvas.getContext('2d')
+
+  consoleImage.onload = () => {
+    consoleCanvas.width = consoleImage.width
+    consoleCanvas.height = consoleImage.height
+
+    context.drawImage(consoleImage, 0, 0, consoleImage.width, consoleImage.height)
+
+    consoleImage.remove()
+  }
+
+  consoleCanvas.addEventListener('mousemove', function (e) {
+    const rect = consoleCanvas.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const pixelData = context.getImageData(x, y, 1, 1).data;
+    // console.log(`R: ${pixelData[0]}, G: ${pixelData[1]}, B: ${pixelData[2]}, A: ${pixelData[3]}`);
+
+    if (pixelData[0] === 255 && pixelData[1] === 0 && pixelData[2] === 0) {
+      console.log("You're touching the red zone!");
+    }
+  })
+
+</script>
+
+</html>
