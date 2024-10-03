@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- Made by Thomas - thomasprice.me -->
+<!-- Please don't use inspect element to cheat or find soltions to puzzles! It's all possible and mostly easy :) -->
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,26 +97,36 @@
 
 
     <!-- second puzzle - console -->
-    <div id="puzzle2-trigger" class="absolute left-[170px] top-[370px] cursor-pointer"
+    <div id="puzzle2-trigger" class="absolute left-[170px] top-[370px] cursor-pointer invisible"
       onclick="document.getElementById('puzzle2-modal').classList.remove('invisible'); document.getElementById('puzzle2-trigger').classList.add('invisible')">
       <img src="./assets/console.png" alt="shhhh... it's a games console!" class="p-2 hover:scale-[1.1] w-[60px]">
     </div>
 
     <!-- console modal -->
     <div id="puzzle2-modal"
-      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-8 max-w-[800px] z-[100]">
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-8 max-w-[800px] z-[100] invisible">
       <button class="text-white absolute top-0 right-0 text-2xl bg-black px-2 py-1 border-4 rounded-md"
         onclick="document.getElementById('puzzle2-modal').classList.add('invisible'); document.getElementById('puzzle2-trigger').classList.remove('invisible')">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <img src="./assets/console.png" alt="puzzle 2" class="w-full px-4" id="console-image">
-      <div id="canvas-wrapper" class="relative">
-        <canvas id="console-canvas" class="w-full px-4"></canvas>
+      <div class="px-4 w-full">
+        <div id="puzzle2-success" class="h-[270px] w-[462px] absolute top-[44px] left-[170px] invisible">
+          <img src="./assets/scrap2.png" alt="the number 3" class="absolute z-[100] w-[200px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <img src="./assets/matrix.gif" alt="matrix raining code" class="h-full w-full object-cover object-top pointer-events-none">
+        </div>
+
+
+        <div id="puzzle2-glitch" class="invisible h-[270px] w-[462px] absolute top-[44px] left-[170px]">
+          <img src="./assets/glitch-font.png" alt="Try again" class="absolute z-[100] w-[300px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-[70%] pointer-events-none">
+          <img src="./assets/glitch.gif" alt="glitch" class="h-full w-full object-cover object-top pointer-events-none">
+        </div>
+        
+        <canvas id="console-canvas" class="" width="704" height="371"></canvas>
       </div>
     </div>
 
-    <!-- <div id="flashlight" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div> -->
+    <div id="flashlight" class="absolute top-0 left-0 w-full h-full pointer-events-none" style="--x: 0px; --y: 0px;"></div>
     <div id="flashlight" class=""></div>
 
   </div>
@@ -240,32 +253,41 @@
 
   // puzzle 2
 
-  const consoleImage = document.getElementById('console-image')
-  const consoleCanvas = document.getElementById('console-canvas')
-  const context = consoleCanvas.getContext('2d')
+  
 
-  consoleImage.onload = () => {
-    consoleCanvas.width = consoleImage.width
-    consoleCanvas.height = consoleImage.height
+  const canvas = document.getElementById('console-canvas')
+  const glitchDiv = document.getElementById('puzzle2-glitch')
 
-    context.drawImage(consoleImage, 0, 0, consoleImage.width, consoleImage.height)
+  function checkConsolePos(e) {
+    if (!glitchDiv.classList.contains('invisible')) return
 
-    consoleImage.remove()
+    var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left; 
+    var y = e.clientY - rect.top;  
+
+    var pixel = context.getImageData(x, y, 1, 1).data;
+
+    // red - move mouse back to start, glitch effect
+    if (pixel[0] >= 220 && pixel[1] <= 20 && pixel[2] <= 20) {
+      glitchDiv.classList.remove('invisible')
+
+      glitchDiv.onmouseleave = () => glitchDiv.classList.add('invisible')
+    }
+
+    if (pixel[0] === 0 && pixel[1] === 255 && pixel[2] === 0) {
+      document.getElementById('puzzle2-success').classList.remove('invisible')
+    }
   }
 
-  consoleCanvas.addEventListener('mousemove', function (e) {
-    const rect = consoleCanvas.getBoundingClientRect();
+  var context = canvas.getContext('2d');
+  var img = new Image();
 
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  img.onload = function () {
+    context.drawImage(img, 0, 0, 704, 371);
+  };
+  img.src = '/assets/console.png'; 
 
-    const pixelData = context.getImageData(x, y, 1, 1).data;
-    // console.log(`R: ${pixelData[0]}, G: ${pixelData[1]}, B: ${pixelData[2]}, A: ${pixelData[3]}`);
-
-    if (pixelData[0] === 255 && pixelData[1] === 0 && pixelData[2] === 0) {
-      console.log("You're touching the red zone!");
-    }
-  })
+  canvas.addEventListener('mousemove', (e) => checkConsolePos(e));
 
 </script>
 
